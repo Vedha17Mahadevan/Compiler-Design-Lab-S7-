@@ -1,0 +1,186 @@
+/*---------------------------------------------------------
+  Program:
+  Design and implement a Lexical Analyzer using Lex that
+  recognizes the following C language tokens:
+  • Keywords
+  • Identifiers
+  • Operators
+  • Delimiters
+  • Integer and Floating Constants
+  • String Literals
+
+  The program reads a C source program from an input file,
+  prints the recognized tokens along with their token type,
+  counts the number of lines, and generates a symbol table
+  containing all unique identifiers.
+----------------------------------------------------------*/
+
+//CODE -> e2.l
+%{
+	#include<stdio.h>
+	#include<stdlib.h>
+	#include<string.h>
+	 int keywords=0, identifiers=0, operators=0, delimiters=0, constants=0, integers=0, strings=0;
+	 int lineCount=1;
+	 char symbol[100][30];
+	 int symbcount=0;
+	 void insertsymbol(char *str){
+	 	int j;
+	 	for (j=0;j<symbcount;j++){
+	 		if(strcmp(symbol[j],str)==0){
+	 			return;
+	 		}
+ 		}
+		strcpy(symbol[symbcount],str);
+		symbcount++;
+	}
+%}
+letter [a-zA-Z]
+digit [0-9]
+identifier {letter}({letter}|{digit})*
+integer {digit}+
+float {digit}+"."{digit}*
+keyword main|int|float|char|if|else|for|break|printf|continue|scanf|void
+operator "++"|"--"|">="|"<="|"!="|"+"|"-"|"*"|"/"|">"|"<"|"=="|"="
+delimiter ";"|"<"|"("|")"|"{"|"}"|"["|"]"
+string \"([^\\\"]|\\.)*\"
+%%
+{keyword} printf("%s\t:\tKeyword\n",yytext); keywords++;
+
+{identifier} printf("%s\t:\tIdentifier\n",yytext); identifiers++; insertsymbol(yytext);
+
+{float} printf("%s\t:\tConstant\n",yytext); constants++;
+
+{operator} printf("%s\t:\tOperator\n",yytext); operators++;
+
+{integer} printf("%s\t:\tInteger\n",yytext); integers++;
+
+{delimiter} printf("%s\t:\tDelimiter\n",yytext); delimiters++;
+
+{string} printf("%s:\tString\n",yytext); strings++;
+
+\n lineCount++;
+
+[\t]+;
+. printf("%s\t:\tUnknown Token\n",yytext);
+
+%%
+
+int yywrap(){
+	return 1;
+}
+
+int main(){
+	yyin=fopen("input.txt","r");
+	if (yyin==NULL){
+	 printf("\nERROR : CANNOT open file");
+	 return 1;
+	}
+	printf("\nLEXICAL ANALYZER OUTPUT\n");
+	printf("-------------\n");
+	yylex();
+	
+	printf("\n-------------");
+	printf("\nTotal number of lines: %d\n",lineCount-1);
+	printf("-------------");
+	printf("\nSYMBOL TABLE");
+	printf("\n-------------");
+	printf("\nid\tIDENTIFIER");
+
+	for(int i=0;i<symbcount;i++){
+		printf("\n%d\t%s",i+1,symbol[i]);
+	}
+	printf("\n");
+	fclose(yyin);
+	return 0;
+}
+
+/*---------------------------------------------------------
+void main()
+{
+  int a=0, b=5, c=10;
+  a = b+c;
+  if(a>5)
+    print(a)
+  else
+    print("nothing")
+}
+---------------------------------------------------------*/
+
+/*---------------------------------------------------------
+LEXICAL ANALYZER OUTPUT
+-------------
+void	:	Keyword
+ 	:	Unknown Token
+main	:	Keyword
+(	:	Delimiter
+)	:	Delimiter
+{	:	Delimiter
+ 	:	Unknown Token
+ 	:	Unknown Token
+int	:	Keyword
+ 	:	Unknown Token
+a	:	Identifier
+=	:	Operator
+0	:	Integer
+,	:	Unknown Token
+ 	:	Unknown Token
+b	:	Identifier
+=	:	Operator
+5	:	Integer
+,	:	Unknown Token
+ 	:	Unknown Token
+c	:	Identifier
+=	:	Operator
+10	:	Integer
+;	:	Delimiter
+ 	:	Unknown Token
+ 	:	Unknown Token
+a	:	Identifier
+ 	:	Unknown Token
+=	:	Operator
+ 	:	Unknown Token
+b	:	Identifier
++	:	Operator
+c	:	Identifier
+;	:	Delimiter
+ 	:	Unknown Token
+ 	:	Unknown Token
+if	:	Keyword
+(	:	Delimiter
+a	:	Identifier
+>	:	Operator
+5	:	Integer
+)	:	Delimiter
+ 	:	Unknown Token
+ 	:	Unknown Token
+ 	:	Unknown Token
+ 	:	Unknown Token
+print	:	Identifier
+(	:	Delimiter
+a	:	Identifier
+)	:	Delimiter
+ 	:	Unknown Token
+ 	:	Unknown Token
+else	:	Keyword
+ 	:	Unknown Token
+ 	:	Unknown Token
+ 	:	Unknown Token
+ 	:	Unknown Token
+print	:	Identifier
+(	:	Delimiter
+"nothing":	String
+)	:	Delimiter
+}	:	Delimiter
+
+-------------
+Total number of lines: 9
+-------------
+SYMBOL TABLE
+-------------
+id	IDENTIFIER
+1	a
+2	b
+3	c
+4	print
+---------------------------------------------------------*/
